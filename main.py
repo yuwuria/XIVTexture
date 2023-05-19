@@ -20,37 +20,32 @@ def overlay_images(user_image, existing_image):
     existing_aspect_ratio = existing_img.width / existing_img.height
 
     if user_aspect_ratio == existing_aspect_ratio:
-        # If the aspect ratios are the same, downsize the larger image to match the size of the smaller image
+        # If the aspect ratios are the same, continue with the overlay process
         if user_img.width > existing_img.width:
             resized_user_img = user_img.resize((existing_img.width, existing_img.height))
             resized_existing_img = existing_img
         else:
             resized_user_img = user_img
             resized_existing_img = existing_img.resize((user_img.width, user_img.height))
+
+        # Create a new image with the same size as the user image
+        overlay_img = Image.new('RGBA', resized_user_img.size)
+
+        # Calculate the position to overlay the existing image
+        position = ((resized_user_img.width - resized_existing_img.width) // 2,
+                    (resized_user_img.height - resized_existing_img.height) // 2)
+
+        # Overlay the existing image onto the new image
+        overlay_img.paste(resized_existing_img, position, resized_existing_img)
+
+        # Composite the images with alpha blending
+        overlayed_img = Image.alpha_composite(resized_user_img, overlay_img)
+
+        # Save the overlayed image as PNG
+        overlayed_img.save('overlay.png')
     else:
-        # If the aspect ratios are different, resize both images to have the same width or height, depending on the aspect ratio
-        if user_aspect_ratio > existing_aspect_ratio:
-            resized_user_img = user_img.resize((existing_img.width, int(existing_img.width / user_aspect_ratio)))
-            resized_existing_img = existing_img
-        else:
-            resized_user_img = user_img
-            resized_existing_img = existing_img.resize((int(user_img.height * existing_aspect_ratio), user_img.height))
-
-    # Create a new image with the same size as the user image
-    overlay_img = Image.new('RGBA', resized_user_img.size)
-
-    # Calculate the position to overlay the existing image
-    position = ((resized_user_img.width - resized_existing_img.width) // 2,
-                (resized_user_img.height - resized_existing_img.height) // 2)
-
-    # Overlay the existing image onto the new image
-    overlay_img.paste(resized_existing_img, position, resized_existing_img)
-
-    # Composite the images with alpha blending
-    overlayed_img = Image.alpha_composite(resized_user_img, overlay_img)
-
-    # Save the overlayed image as PNG
-    overlayed_img.save('overlay.png')
+        # If the aspect ratios are different, display an error message
+        st.error("The aspect ratios of the images are different. Please upload images with the same aspect ratio.")
 
 
 def main():
